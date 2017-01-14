@@ -28,22 +28,16 @@
 (defn create-enemy []
   (println "enemy spawned"))
 
-(defn update-player-position [entity]
-  (if (= true (:movable entity))
-    (do (println "MOVE") entity)
-    entity))
-
-(defn get-direction []
-  (key-pressed? :dpad-left) :left
-  (key-pressed? :dpad-right) :right
-  (key-pressed? :dpad-up) :up
-  (key-pressed? :dpad-down) :down)
-
-(defn move-player [entities]
-  (->> entities
-       (map (fn [entity]
-              (->> entity
-                   (update-player-position))))))
+(defn move [entities direction]
+  (for [entity entities]
+    (if (:movable entity)
+      (case direction
+        :down (update entity :y #(- % speed))
+        :up (update entity :y #(+ % speed))
+        :left (update entity :x #(- % speed))
+        :right (update entity :x #(+ % speed))
+        nil)
+      entity)))
 
 (defscreen main-screen
   :on-show
@@ -51,7 +45,7 @@
     (add-timer! screen :spawn-enemy 10 2)
     (update! screen :renderer (stage) :camera (orthographic))
     (let [background (assoc (texture "bg.png") :night? true)
-          cat (assoc (texture "cat-2.png") :x 50 :y 50 :width 80 :height 80 :night? true :movable true)
+          cat (assoc (texture "cat-2.png") :x 300 :y 300 :width 80 :height 80 :night? true :movable true)
           dog (assoc (texture "dog-2.png") :x 200 :y 200 :width 80 :height 80 :night? false)]
       [background cat dog]))
   :on-render
@@ -61,8 +55,14 @@
   :on-key-down
   (fn [screen entities]
     (cond
-      (get-direction) (move-player entities)
-      :else entities))
+      (= (:key screen) (key-code :dpad-up))
+      (move entities :up)
+      (= (:key screen) (key-code :dpad-down))
+      (move entities :down)
+      (= (:key screen) (key-code :dpad-right))
+      (move entities :right)
+      (= (:key screen) (key-code :dpad-left))
+      (move entities :left)))
   :on-resize
   (fn [screen entities]
     (height! screen 600))
