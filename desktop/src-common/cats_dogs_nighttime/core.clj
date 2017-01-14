@@ -25,8 +25,10 @@
 
 (def speed 10)
 
-(defn create-enemy []
-  (println "enemy spawned"))
+(defn spawn-rodent []
+  (let [x (+ 50 (rand-int 700))
+        y (+ 50 (rand-int 500))]
+    (assoc (texture "rat.png") :x x, :y y, :width 50, :height 50)))
 
 (defn move [entities direction]
   (for [entity entities]
@@ -42,9 +44,9 @@
 (defscreen main-screen
   :on-show
   (fn [screen entities]
-    (add-timer! screen :spawn-enemy 10 2)
+    (add-timer! screen :spawn-rodent 10 2)
     (update! screen :renderer (stage) :camera (orthographic))
-    (let [background (assoc (texture "bg.png") :night? true)
+    (let [background (assoc (texture "bg-invert.png") :night? true)
           cat (assoc (texture "cat-2.png") :x 300 :y 300 :width 80 :height 80 :night? true :movable true)
           dog (assoc (texture "dog-2.png") :x 200 :y 200 :width 80 :height 80 :night? false)]
       [background cat dog]))
@@ -69,7 +71,7 @@
   :on-timer
   (fn [screen entities]
     (case (:id screen)
-      :spawn-enemy (conj entities (create-enemy))
+      :spawn-rodent (conj entities (spawn-rodent))
       nil)))
 
 (defgame cats-dogs-nighttime-game
